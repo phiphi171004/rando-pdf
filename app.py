@@ -19,7 +19,7 @@ import json
 app = Flask(__name__)
 
 # Cấu hình Gemini API
-genai.configure(api_key="AIzaSyDlAcOmSNTycoGqgCw2pCz79onaY_LMadg")
+genai.configure(api_key=os.getenv('GEMINI_API_KEY', 'AIzaSyDlAcOmSNTycoGqgCw2pCz79onaY_LMadg'))
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 # Danh sách địa chỉ Delhi để random
