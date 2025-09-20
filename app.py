@@ -135,7 +135,7 @@ def generate_random_data():
     sol_roll_no = f"25-6-02-04{roll_suffix}"
     
     # Random Date of Birth (giữ năm, random ngày tháng)
-    year = 2000  # Giữ nguyên năm
+    year = 2004  # Giữ nguyên năm
     month = random.randint(1, 12)
     day = random.randint(1, 28)  # Đảm bảo ngày hợp lệ
     
