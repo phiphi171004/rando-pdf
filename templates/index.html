@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Randomizer - Tự động Random PDF</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            min-width: 200px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(240, 147, 251, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .preview-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .preview-section.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .preview-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .data-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .data-label {
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .data-value {
+            font-size: 1.1em;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .download-section {
+            text-align: center;
+            margin-top: 30px;
+            display: none;
+        }
+
+        .download-section.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .preview-pdf-section {
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .preview-pdf-section h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .download-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(86, 171, 47, 0.4);
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #e9ecef;
+        }
+
+        @media (max-width: 768px) {
+            .button-group {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎲 PDF Randomizer</h1>
+            <p>Tự động random thông tin trong PDF và tải về</p>
+        </div>
+
+        <div class="content">
+            <div id="alert" class="alert"></div>
+
+            <div class="button-group">
+                <button id="previewBtn" class="btn btn-secondary">
+                    👁️ Xem trước dữ liệu
+                </button>
+                <button id="randomizeBtn" class="btn btn-primary">
+                    🎲 Random & Tải PDF
+                </button>
+            </div>
+
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Đang xử lý...</p>
+            </div>
+
+            <div id="previewSection" class="preview-section">
+                <h2 class="preview-title">📋 Dữ liệu sẽ được random</h2>
+                <div id="dataGrid" class="data-grid"></div>
+            </div>
+
+            <div id="downloadSection" class="download-section">
+                <h3>✅ Random thành công!</h3>
+                <p>PDF đã được tạo với dữ liệu random. Xem preview bên dưới và tải về khi hài lòng.</p>
+                
+                <div class="preview-pdf-section">
+                    <h4>📄 Preview PDF:</h4>
+                    <iframe id="pdfPreview" src="" width="100%" height="600px" style="border: 1px solid #ddd; border-radius: 10px; display: none;"></iframe>
+                </div>
+                
+                <div class="download-buttons">
+                    <a id="downloadBtn" class="download-btn" href="#" download>
+                        📥 Tải PDF về máy
+                    </a>
+                    <button id="newRandomBtn" class="btn btn-secondary" style="margin-left: 20px;">
+                        🎲 Random lại
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 PDF Randomizer - Tự động hóa việc tạo PDF với dữ liệu random</p>
+        </div>
+    </div>
+
+    <script>
+        let currentData = null;
+
+        // Elements
+        const previewBtn = document.getElementById('previewBtn');
+        const randomizeBtn = document.getElementById('randomizeBtn');
+        const newRandomBtn = document.getElementById('newRandomBtn');
+        const loading = document.getElementById('loading');
+        const alert = document.getElementById('alert');
+        const previewSection = document.getElementById('previewSection');
+        const downloadSection = document.getElementById('downloadSection');
+        const dataGrid = document.getElementById('dataGrid');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const pdfPreview = document.getElementById('pdfPreview');
+
+        // Show alert
+        function showAlert(message, type = 'success') {
+            alert.textContent = message;
+            alert.className = `alert alert-${type} show`;
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 5000);
+        }
+
+        // Show loading
+        function showLoading() {
+            loading.classList.add('show');
+            previewSection.classList.remove('show');
+            downloadSection.classList.remove('show');
+        }
+
+        // Hide loading
+        function hideLoading() {
+            loading.classList.remove('show');
+        }
+
+        // Display data in grid
+        function displayData(data) {
+            const fields = [
+                { label: 'Barcode No', value: data.barcode },
+                { label: 'Name', value: data.name },
+                { label: "Father's Name", value: data.father_name },
+                { label: "Mother's Name", value: data.mother_name },
+                { label: 'Mailing Address', value: data.mailing_address },
+                { label: 'User', value: data.user_number },
+                { label: 'Receipt No', value: data.receipt_no },
+                { label: 'SOL Roll No', value: data.sol_roll_no },
+                { label: 'Date of Birth', value: data.date_of_birth },
+                { label: 'Phone No', value: data.phone_no },
+                { label: 'Refe.No', value: data.refe_no },
+                { label: 'Email ID', value: data.email_id }
+            ];
+
+            dataGrid.innerHTML = fields.map(field => `
+                <div class="data-item">
+                    <div class="data-label">${field.label}</div>
+                    <div class="data-value">${field.value}</div>
+                </div>
+            `).join('');
+        }
+
+        // Preview button click
+        previewBtn.addEventListener('click', async () => {
+            showLoading();
+            
+            try {
+                const response = await fetch('/preview', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentData = result.data;
+                    displayData(currentData);
+                    previewSection.classList.add('show');
+                    showAlert('Dữ liệu preview đã được tạo!', 'success');
+                } else {
+                    showAlert(result.error || 'Lỗi khi tạo preview!', 'error');
+                }
+            } catch (error) {
+                showAlert('Lỗi kết nối!', 'error');
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // Randomize button click
+        randomizeBtn.addEventListener('click', async () => {
+            showLoading();
+            
+            try {
+                const response = await fetch('/randomize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentData = result.data;
+                    displayData(currentData);
+                    previewSection.classList.add('show');
+                    downloadSection.classList.add('show');
+                    downloadBtn.href = result.download_url;
+                    
+                    // Lưu filename để kiểm tra sau
+                    window.currentFilename = result.download_url.split('/').pop();
+                    
+                    // Hiển thị PDF preview
+                    if (result.preview_url) {
+                        pdfPreview.src = result.preview_url;
+                        pdfPreview.style.display = 'block';
+                    }
+                    
+                    showAlert('PDF đã được random thành công! File sẽ được giữ lại cho đến khi bạn random kết quả mới.', 'success');
+                } else {
+                    showAlert(result.error || 'Lỗi khi random PDF!', 'error');
+                }
+            } catch (error) {
+                showAlert('Lỗi kết nối!', 'error');
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // Download button click - kiểm tra file trước khi tải
+        downloadBtn.addEventListener('click', async (e) => {
+            if (window.currentFilename) {
+                try {
+                    const response = await fetch(`/check_file/${window.currentFilename}`);
+                    const result = await response.json();
+                    
+                    if (!result.exists) {
+                        e.preventDefault();
+                        showAlert('File không tồn tại! File đã bị xóa khi bạn random kết quả mới. Vui lòng random lại.', 'error');
+                        return;
+                    }
+                    
+                    // File tồn tại, cho phép tải
+                    showAlert(result.message || 'File sẵn sàng tải!', 'success');
+                } catch (error) {
+                    console.error('Lỗi kiểm tra file:', error);
+                    // Vẫn cho phép tải nếu không kiểm tra được
+                }
+            }
+        });
+
+        // New random button click
+        newRandomBtn.addEventListener('click', () => {
+            // Ẩn preview PDF
+            pdfPreview.style.display = 'none';
+            pdfPreview.src = '';
+            
+            // Ẩn download section
+            downloadSection.classList.remove('show');
+            
+            // Random lại
+            randomizeBtn.click();
+        });
+    </script>
+</body>
+</html>
